@@ -138,6 +138,17 @@ def _check_diff_gaussian_rasterization():
         print(f"diff_gaussian_rasterization installed: {r}")
     return True
 
+def _check_trellis_submodules():
+    print("check trellis submodules")
+    try:
+        from .TRELLIS.trellis import trellis
+        print(f"trellis: {trellis}")
+    except ImportError:
+        print("trellis not found")
+        
+        return True
+    return True
+
 def _remove_pip(package):
     try:
         pip.call_pip(args=["uninstall", package, "-y"])
@@ -171,5 +182,6 @@ def check_packages():
 
     if not _check_diff_gaussian_rasterization():
         return False
-
+    if not _check_trellis_submodules():
+        return False
     return True

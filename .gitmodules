@@ -1,3 +1,0 @@
-[submodule "source/extensions/genai.image_to_3d.trellis/genai/image_to_3d/trellis/TRELLIS"]
-	path = source/extensions/genai.image_to_3d.trellis/genai/image_to_3d/trellis/TRELLIS
-	url = https://github.com/microsoft/TRELLIS.git

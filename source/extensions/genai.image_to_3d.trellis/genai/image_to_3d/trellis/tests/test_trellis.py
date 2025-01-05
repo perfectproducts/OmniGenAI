@@ -12,7 +12,7 @@
 #   omni.kit.test - std python's unittest module with additional wrapping to add support for async/await tests
 #   For most things refer to unittest docs: https://docs.python.org/3/library/unittest.html
 # Import extension python module we are testing with absolute import path, as if we are an external user (other extension)
-import genai.image_to_3d.trellis
+import genai.image_to_3d.trellis as trellis
 import omni.kit.test
 
 
@@ -28,5 +28,6 @@ class Test(omni.kit.test.AsyncTestCase):
         pass
 
     # Actual test, notice it is an "async" function, so "await" can be used if needed
-    async def test_hello_public_function(self):
-        pass
+    async def test_trellis(self):
+        trellis.test_trellis("a batmobile")
+        

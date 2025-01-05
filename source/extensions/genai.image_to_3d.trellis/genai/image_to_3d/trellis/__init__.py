@@ -9,3 +9,4 @@
 # its affiliates is strictly prohibited.
 
 from .extension import *
+from .check_packages import *

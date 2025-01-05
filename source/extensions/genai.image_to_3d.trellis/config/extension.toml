@@ -25,7 +25,28 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-app-template"  # URL of th
 "omni.kit.pip_archive" = {}
 
 [python.pipapi]
-requirements = ['torch', 
+requirements = ['GitPython',
+                'torch==2.5.1',
+                'torchvision',
+                'xformers==0.0.28.post3',
+                'pillow',
+                'imageio',                
+                'tqdm',
+                'easydict',
+                'opencv-python-headless',
+                'scipy',
+                'ninja',
+                'rembg',
+                'onnxruntime',
+                'trimesh',
+                'xatlas',
+                'pyvista',
+                'pymeshfix',
+                'igraph',
+                'transformers'
+                ]
+
+x_requirements = ['torch', 
                 'torchvision', 
                 'xformers',
                 'pillow', 

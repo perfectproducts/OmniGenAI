@@ -10,3 +10,4 @@
 
 
 from .test_trellis import *
+from .test_packages import *

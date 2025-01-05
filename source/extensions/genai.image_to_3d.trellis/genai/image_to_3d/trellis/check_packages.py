@@ -138,6 +138,25 @@ def _check_diff_gaussian_rasterization():
         print(f"diff_gaussian_rasterization installed: {r}")
     return True
 
+def _check_trellis_submodules():
+    print("check trellis submodules")
+    try:
+        from .TRELLIS import trellis
+        print(f"trellis: {trellis}")
+    except ImportError:
+        print("trellis not found")
+        trellis_git = "https://github.com/microsoft/TRELLIS.git"
+        trellis_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "TRELLIS")
+        git.Repo.clone_from(trellis_git, trellis_path, recursive=True)        
+        try:
+            from .TRELLIS import trellis
+            print(f"trellis: {trellis}")
+        except Exception as e:
+            print(f"Error importing trellis: {e}")
+            return False
+        
+    return True
+
 def _remove_pip(package):
     try:
         pip.call_pip(args=["uninstall", package, "-y"])
@@ -171,5 +190,6 @@ def check_packages():
 
     if not _check_diff_gaussian_rasterization():
         return False
-
+    if not _check_trellis_submodules():
+        return False
     return True

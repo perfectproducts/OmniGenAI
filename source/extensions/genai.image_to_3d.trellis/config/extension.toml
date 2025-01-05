@@ -43,7 +43,9 @@ requirements = ['GitPython',
                 'pyvista',
                 'pymeshfix',
                 'igraph',
-                'transformers'
+                'transformers',
+                'spconv-cu120',
+                'plyfile',
                 ]
 
 x_requirements = ['torch', 

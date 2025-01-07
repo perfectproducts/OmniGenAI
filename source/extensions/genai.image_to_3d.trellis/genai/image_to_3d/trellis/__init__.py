@@ -10,3 +10,4 @@
 
 from .extension import *
 from .check_packages import *
+from .commands import *

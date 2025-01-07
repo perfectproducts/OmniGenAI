@@ -1,21 +1,24 @@
 import torch
 from PIL import Image
-import base64
-import io
+from enum import Enum
 from diffusers import FluxPipeline
 from transformers import pipeline
 from huggingface_hub import hf_hub_download
-#import protobuf
-import os
-import omni.kit.pipapi
-import asyncio
+
 import warnings
+
+
+class FluxState(Enum):
+    UNINITIALIZED = "uninitialized"
+    INITIALIZING = "initializing"
+    READY = "ready"
+    ERROR = "error"
+
 
 class FluxWrapper:
     def __init__(self):
-        self.initialized = False
-        self.initializing = False
-        self.pipe = None
+        self.state = FluxState.UNINITIALIZED
+        self.pipeline = None
         
         # Check CUDA availability
         print(f"CUDA is available: {torch.cuda.is_available()}")
@@ -32,40 +35,40 @@ class FluxWrapper:
 
     def shutdown(self):
         print("shutdown...")        
-        self.pipe = None
-        self.initialized = False
+        self.pipeline = None
+        self.state = FluxState.UNINITIALIZED
 
     async def initialize(self):
-        if self.initializing or self.initialized:
-            return self.initialized
-        self.initializing = True
+        if self.state in [FluxState.INITIALIZING, FluxState.READY]:
+            return self.state == FluxState.READY
+        
+        self.state = FluxState.INITIALIZING
         print("initializing...")
         
         try:
             warnings.filterwarnings("ignore", message="You set `add_prefix_space`.*")
         
             # Initialize Flux pipeline
-            self.pipe = FluxPipeline.from_pretrained(
+            self.pipeline = FluxPipeline.from_pretrained(
                 "black-forest-labs/FLUX.1-dev",
                 torch_dtype=torch.bfloat16
             )
 
             # Load and fuse LoRA weights
-            self.pipe.load_lora_weights(
+            self.pipeline.load_lora_weights(
                 hf_hub_download(
                     "ByteDance/Hyper-SD",
                     "Hyper-FLUX.1-dev-8steps-lora.safetensors",                
                 )
             )
-            self.pipe.fuse_lora(lora_scale=0.125)
-            self.pipe.to(device="cuda", dtype=torch.bfloat16)
-            self.initialized = True
+            self.pipeline.fuse_lora(lora_scale=0.125)
+            self.pipeline.to(device="cuda", dtype=torch.bfloat16)
+            self.state = FluxState.READY
             return True
         except Exception as e:
             print(f"Error initializing Flux pipeline: {e}")
+            self.state = FluxState.ERROR
             return False
-        finally:
-            self.initializing = False
 
     async def generate(self,
                        prompt,
@@ -74,9 +77,9 @@ class FluxWrapper:
                        inference_steps=8,
                        guidance_scale=3.5,
                        seed=None) -> Image.Image:
-        if not self.initialized:
+        if self.state != FluxState.READY:
             await self.initialize()
-        if not self.initialized:
+        if self.state != FluxState.READY:
             print("Flux pipeline not initialized")
             return None
                    
@@ -88,7 +91,7 @@ class FluxWrapper:
         print("generating...")
         # Generate image
         with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
-            generated_image = self.pipe(
+            generated_image = self.pipeline(
                 prompt=[formatted_prompt],
                 generator=torch.Generator().manual_seed(seed),
                 num_inference_steps=inference_steps,
@@ -100,7 +103,7 @@ class FluxWrapper:
         
         # debug: save image to file
         print(f"generated_image_{seed}.png")
-        generated_image.save(f"generated_image_{seed}.png")
+        #generated_image.save(f"generated_image_{seed}.png")
         return generated_image
     
 

@@ -18,13 +18,21 @@ from genai.text_to_image.flux import FluxWrapper
 import sys
 import io
 import contextlib
+import os
+import shutil
+
 
 # Having a test class derived from omni.kit.test.AsyncTestCase declared on the root of the module
 # will make it auto-discoverable by omni.kit.test
-class Test(omni.kit.test.AsyncTestCase):
+class TestFlux(omni.kit.test.AsyncTestCase):
     # Before running each test
     async def setUp(self):
-        pass
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
+        self.output_dir = os.path.join(os.path.dirname(__file__), "output")
+        # delete output directory
+        if os.path.exists(self.output_dir):
+            shutil.rmtree(self.output_dir)
+        os.makedirs(self.output_dir, exist_ok=True)
 
     # After running each test
     async def tearDown(self):
@@ -34,8 +42,8 @@ class Test(omni.kit.test.AsyncTestCase):
     async def test_flux(self):
         string_buffer = io.StringIO()
         with contextlib.redirect_stderr(string_buffer):
-         
-            flux = FluxWrapper()        
+
+            flux = FluxWrapper()
             img = await flux.generate("a red and green apple", height=512, width=512)
             self.assertIsNotNone(img)
             self.assertEqual(img.size, (512, 512))
@@ -43,3 +51,20 @@ class Test(omni.kit.test.AsyncTestCase):
 
         print("test done:")
         print(string_buffer.getvalue())
+
+    async def test_flux_command(self):
+        outpath = os.path.join(self.output_dir, "apple_output.png")
+        (result, err) = omni.kit.commands.execute("GenerateImageFlux",
+                                                  prompt="a red and green apple",
+                                                  asset_png_path=outpath,
+                                                  height=512,
+                                                  width=512)
+        self.assertTrue(result)
+        self.assertTrue(os.path.exists(outpath))
+        outpath = os.path.join(self.output_dir, "cnc_output.png")
+        (result, err) = omni.kit.commands.execute("GenerateImageFlux",
+                                                  prompt="an industrial cnc machine",
+                                                  asset_png_path=outpath,
+                                                  height=512,
+                                                  width=512)
+        self.assertTrue(result)

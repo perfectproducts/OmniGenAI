@@ -15,39 +15,50 @@ class FluxState(Enum):
     ERROR = "error"
 
 
+_flux_instance = None
+
+
+def get_flux_instance():
+    """Get the singleton instance of FluxWrapper."""
+    global _flux_instance
+    if _flux_instance is None:
+        _flux_instance = FluxWrapper()
+    return _flux_instance
+
+
 class FluxWrapper:
     def __init__(self):
         self.state = FluxState.UNINITIALIZED
         self.pipeline = None
-        
+
         # Check CUDA availability
         print(f"CUDA is available: {torch.cuda.is_available()}")
         if torch.cuda.is_available():
             # Get the current device
             current_device = torch.cuda.current_device()
-            
+
             # Print device properties
             print(f"\nCurrent CUDA device: {torch.cuda.get_device_name(current_device)}")
             print(f"Device capability: {torch.cuda.get_device_capability(current_device)}")
-            print(f"Total memory: {torch.cuda.get_device_properties(current_device).total_memory / 1024**3:.2f} GB")            
+            print(f"Total memory: {torch.cuda.get_device_properties(current_device).total_memory / 1024**3:.2f} GB")
         else:
             print("No GPU available - please to install torch with GPU support")
 
     def shutdown(self):
-        print("shutdown...")        
+        print("shutdown...")
         self.pipeline = None
         self.state = FluxState.UNINITIALIZED
 
-    async def initialize(self):
+    def initialize(self):
         if self.state in [FluxState.INITIALIZING, FluxState.READY]:
             return self.state == FluxState.READY
-        
+
         self.state = FluxState.INITIALIZING
         print("initializing...")
-        
+
         try:
             warnings.filterwarnings("ignore", message="You set `add_prefix_space`.*")
-        
+
             # Initialize Flux pipeline
             self.pipeline = FluxPipeline.from_pretrained(
                 "black-forest-labs/FLUX.1-dev",
@@ -58,7 +69,7 @@ class FluxWrapper:
             self.pipeline.load_lora_weights(
                 hf_hub_download(
                     "ByteDance/Hyper-SD",
-                    "Hyper-FLUX.1-dev-8steps-lora.safetensors",                
+                    "Hyper-FLUX.1-dev-8steps-lora.safetensors",
                 )
             )
             self.pipeline.fuse_lora(lora_scale=0.125)
@@ -70,21 +81,21 @@ class FluxWrapper:
             self.state = FluxState.ERROR
             return False
 
-    async def generate(self,
-                       prompt,
-                       height=1024,
-                       width=1024,
-                       inference_steps=8,
-                       guidance_scale=3.5,
-                       seed=None) -> Image.Image:
+    def generate(self,
+                 prompt,
+                 height=1024,
+                 width=1024,
+                 inference_steps=8,
+                 guidance_scale=3.5,
+                 seed=None) -> Image.Image:
         if self.state != FluxState.READY:
-            await self.initialize()
+            self.initialize()
         if self.state != FluxState.READY:
             print("Flux pipeline not initialized")
             return None
-                   
+
         formatted_prompt = f"wbgmsst, 3D, {prompt} ,white background"
-        
+
         # Set seed if not provided
         if seed is None:
             seed = torch.randint(0, 1000000, (1,)).item()
@@ -100,10 +111,8 @@ class FluxWrapper:
                 width=width,
                 max_sequence_length=256
             ).images[0]
-        
+
         # debug: save image to file
-        print(f"generated_image_{seed}.png")
+        #print(f"generated_image_{seed}.png")
         #generated_image.save(f"generated_image_{seed}.png")
         return generated_image
-    
-

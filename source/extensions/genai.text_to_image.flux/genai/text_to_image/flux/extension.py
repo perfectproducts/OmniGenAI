@@ -10,21 +10,14 @@
 # its affiliates is strictly prohibited.
 
 import omni.ext
-
-
-# Functions and vars are available to other extensions as usual in python:
-# `genai.text_to_image.flux.some_public_function(x)`
-def some_public_function(x: int):
-    """This is a public function that can be called from other extensions."""
-    print(f"[genai.text_to_image.flux] some_public_function was called with {x}")
-    return x**x
+from .commands import GenerateImageFlux
 
 
 # Any class derived from `omni.ext.IExt` in the top level module (defined in
 # `python.modules` of `extension.toml`) will be instantiated when the extension
 # gets enabled, and `on_startup(ext_id)` will be called. Later when the
 # extension gets disabled on_shutdown() is called.
-class MyExtension(omni.ext.IExt):
+class FluxExtension(omni.ext.IExt):
     """This is a blank extension template."""
     # ext_id is the current extension id. It can be used with the extension
     # manager to query additional information, like where this extension is
@@ -32,8 +25,10 @@ class MyExtension(omni.ext.IExt):
     def on_startup(self, _ext_id):
         """This is called every time the extension is activated."""
         print("[genai.text_to_image.flux] Extension startup")
+        omni.kit.commands.register(GenerateImageFlux)
 
     def on_shutdown(self):
         """This is called every time the extension is deactivated. It is used
         to clean up the extension state."""
         print("[genai.text_to_image.flux] Extension shutdown")
+        omni.kit.commands.unregister(GenerateImageFlux)

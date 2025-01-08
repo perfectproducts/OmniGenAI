@@ -1,6 +1,6 @@
 from enum import Enum
 import torch
-from .TRELLIS.trellis.pipelines import TrellisImageTo3DPipeline   
+from .TRELLIS.trellis.pipelines import TrellisImageTo3DPipeline
 from .TRELLIS.trellis.utils import postprocessing_utils
 from PIL import Image
 import io
@@ -16,17 +16,24 @@ class TrellisState(Enum):
 _trellis_instance = None
 
 
+def get_trellis_instance():
+    global _trellis_instance
+    if _trellis_instance is None:
+        _trellis_instance = TrellisWrapper()
+    return _trellis_instance
+
+
 class TrellisWrapper:
     def __init__(self):
         self.state = TrellisState.UNINITIALIZED
         self.pipeline = None
-        
+
         # Check CUDA availability
         print(f"CUDA is available: {torch.cuda.is_available()}")
         if torch.cuda.is_available():
             # Get the current device
             current_device = torch.cuda.current_device()
-            
+
             # Print device properties
             print(f"\nCurrent CUDA device: {torch.cuda.get_device_name(current_device)}")
             print(f"Device capability: {torch.cuda.get_device_capability(current_device)}")
@@ -39,7 +46,7 @@ class TrellisWrapper:
     def initialize(self):
         if self.state in [TrellisState.INITIALIZING, TrellisState.READY]:
             return self.state == TrellisState.READY
-                
+
         self.state = TrellisState.INITIALIZING
         print("initializing...")
 
@@ -49,7 +56,7 @@ class TrellisWrapper:
 
         self.state = TrellisState.READY
         return True
-    
+
     def shutdown(self):
         if self.state != TrellisState.READY:
             return
@@ -60,7 +67,7 @@ class TrellisWrapper:
         self.pipeline = None
         self.state = TrellisState.UNINITIALIZED
         print("shutdown complete")
-    
+
     def generate(self,
                        image: Image.Image,
                        ss_sampling_steps: int = 12,
@@ -70,14 +77,14 @@ class TrellisWrapper:
                        seed: int = 1,
                        mesh_simplify: float = 0.95,
                        texture_size: int = 1024) -> bytes:
-        
+
         if self.state != TrellisState.READY:
             self.initialize()
         if self.state != TrellisState.READY:
             print("Trellis pipeline not initialized")
             return None
             # Run the pipeline
-       
+
         outputs = self.pipeline.run(
             image,
             seed=seed,
@@ -96,13 +103,7 @@ class TrellisWrapper:
             outputs['mesh'][0],
             simplify=mesh_simplify,
             texture_size=texture_size
-        )    
+        )
         buffer = io.BytesIO()
         glb.export(buffer, file_type="glb")
         return buffer.getvalue()
-    
-def get_trellis_instance():
-    global _trellis_instance
-    if _trellis_instance is None:
-        _trellis_instance = TrellisWrapper()
-    return _trellis_instance

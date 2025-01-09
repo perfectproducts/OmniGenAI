@@ -27,7 +27,7 @@ class TextToImageExtension(omni.ext.IExt):
     def on_generate_clicked(self):
         print("Generate button clicked")
         prompt = self.prompt_input_model.get_value_as_string()
-        outpath = os.path.join(self._image_directory, f"{prompt.replace(' ', '_')}.png")
+        outpath = os.path.join(self._image_directory, f"{prompt.replace(' ', '_').replace('.', '_').replace('/', '_').replace(',', '_')}.png")
         (result, err) = omni.kit.commands.execute("GenerateImageFlux",
                                                   prompt=prompt,
                                                   asset_png_path=outpath,

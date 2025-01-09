@@ -39,7 +39,6 @@ requirements = ['torch',
                 'huggingface-hub',
                 'sentencepiece',
                 'einops',
-                'pytriton'
 
                 ]
 extra_args = ["--extra-index-url", "https://download.pytorch.org/whl/cu124"]

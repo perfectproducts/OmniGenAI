@@ -1,7 +1,5 @@
 from enum import Enum
 import torch
-from .TRELLIS.trellis.pipelines import TrellisImageTo3DPipeline
-from .TRELLIS.trellis.utils import postprocessing_utils
 from PIL import Image
 import io
 
@@ -37,13 +35,21 @@ class TrellisWrapper:
             # Print device properties
             print(f"\nCurrent CUDA device: {torch.cuda.get_device_name(current_device)}")
             print(f"Device capability: {torch.cuda.get_device_capability(current_device)}")
+            print(f"CUDA version: {torch.cuda.get_driver_version()}")
             print(f"Total memory: {torch.cuda.get_device_properties(current_device).total_memory / 1024**3:.2f} GB")
+            # we only work with cuda 12.4.x
+            if torch.cuda.get_driver_version() < 12400:
+                print("CUDA version is not 12.4 - please install torch with CUDA 12.4")
+                self.state = TrellisState.ERROR
+                return
             self.initialize()
         else:
             print("No GPU available - please to install torch with GPU support")
             self.state = TrellisState.ERROR
 
     def initialize(self):
+        from .TRELLIS.trellis.pipelines import TrellisImageTo3DPipeline
+        from .TRELLIS.trellis.utils import postprocessing_utils
         if self.state in [TrellisState.INITIALIZING, TrellisState.READY]:
             return self.state == TrellisState.READY
 

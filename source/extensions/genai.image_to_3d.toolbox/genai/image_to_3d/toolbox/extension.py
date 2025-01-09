@@ -30,25 +30,36 @@ class ImageTo3dToolboxExtension(omni.ext.IExt):
             print("No image selected")
             return
 
-        print("Generate 3D", self._image_path)  
+        print("Generate 3D", self._image_path)
         base, ext = os.path.splitext(self._image_path)
         usd_path = base + ".usd"
-        
+
         (result, err) = omni.kit.commands.execute("Generate3dFromImageTrellis",
                                             image_path=self._image_path,
                                             asset_usd_path=usd_path)
         # wait for the conversion to finish by polling the usd file
-        while not os.path.exists(usd_path):
+
+        if not result:
+            print(f"Failed to generate 3D from image {err}")
+            return
+        print(f"Waiting for 3D to be generated {result, err}")
+        timout = 10
+        while not os.path.exists(usd_path) and timout > 0:
             asyncio.get_event_loop().run_until_complete(asyncio.sleep(1))
-        
+            timout -= 1
+
+        if not os.path.exists(usd_path):
+            print("Failed to generate 3D from image")
+            return
+
         ctx = omni.usd.get_context()
         ctx.open_stage(usd_path)
-    
 
-    def on_open_image_handler(self, 
-                              filename: str, 
-                              dirname: str, 
-                              extension: str = "", 
+
+    def on_open_image_handler(self,
+                              filename: str,
+                              dirname: str,
+                              extension: str = "",
                               selections: list = []):
         print(f"> open '{filename}{extension}' from '{dirname}' with additional selections '{selections}'")
         if not dirname.endswith("/"):
@@ -56,7 +67,7 @@ class ImageTo3dToolboxExtension(omni.ext.IExt):
         filepath = f"{dirname}{filename}{extension}"
         self._image_path = filepath
         self.update_image()
-    
+
     def on_select_image_clicked(self):
         file_importer = get_file_importer()
         if not file_importer:
@@ -81,7 +92,7 @@ class ImageTo3dToolboxExtension(omni.ext.IExt):
         print("[genai.image_to_3d.toolbox] Extension startup")
         self._data_dir = os.path.dirname(os.path.realpath(__file__))+"/../../../data"
         self._image_path = None
-        
+
         self._empty_image_path = f"{self._data_dir}/image_icon.svg"
         self._window = ui.Window(
             "GenAI Image To 3D Toolbox", width=300, height=300
@@ -95,10 +106,10 @@ class ImageTo3dToolboxExtension(omni.ext.IExt):
                     ui.Spacer()
                     self.image_preview = ui.Image(width=256, height=256, alignment=ui.Alignment.CENTER)
                     ui.Spacer()
-                with ui.HStack():                    
-                    ui.Button("Generate 3D", clicked_fn=self.on_generate_3d_clicked,height=40)                    
+                with ui.HStack():
+                    ui.Button("Generate 3D", clicked_fn=self.on_generate_3d_clicked,height=40)
                     ui.Button("...", clicked_fn=self.on_select_image_clicked,height=40, width=40)
-                    
+
         self.update_image()
 
     def on_shutdown(self):

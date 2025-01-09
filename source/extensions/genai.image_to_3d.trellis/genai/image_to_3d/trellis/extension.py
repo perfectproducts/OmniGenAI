@@ -10,13 +10,8 @@
 # its affiliates is strictly prohibited.
 
 import omni.ext
-import os
-import io
 from .check_packages import check_packages
-from PIL import Image
-import base64
-from .trellis_wrapper import get_trellis_instance
-import asyncio
+from .trellis_wrapper import destroy_trellis_instance
 from .commands import Generate3dFromImageTrellis
 
 
@@ -27,18 +22,17 @@ class TrellisExtension(omni.ext.IExt):
     # manager to query additional information, like where this extension is
     # located on the filesystem.
 
-    def on_startup(self, _ext_id):        
-        check_packages()        
-        
+    def on_startup(self, _ext_id):
+        check_packages()
+
         # register the commands
-        omni.kit.commands.register(Generate3dFromImageTrellis)        
-        """This is called every time the extension is activated."""        
+        omni.kit.commands.register(Generate3dFromImageTrellis)
+        """This is called every time the extension is activated."""
 
     def on_shutdown(self):
         """This is called every time the extension is deactivated. It is used
         to clean up the extension state."""
         print("[genai.image_to_3d.trellis] Extension shutdown")
         omni.kit.commands.unregister(Generate3dFromImageTrellis)
-        get_trellis_instance().shutdown()
+        destroy_trellis_instance()
         print("extension shutdown complete")
-

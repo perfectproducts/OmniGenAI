@@ -1,5 +1,6 @@
 from enum import Enum
 import torch
+import gc
 from PIL import Image
 import io
 
@@ -12,6 +13,15 @@ class TrellisState(Enum):
 
 
 _trellis_instance = None
+
+
+def destroy_trellis_instance():
+    global _trellis_instance
+    if _trellis_instance is not None:
+        _trellis_instance.shutdown()
+        _trellis_instance = None
+        gc.collect()
+        torch.cuda.empty_cache()
 
 
 def get_trellis_instance():
@@ -30,18 +40,6 @@ class TrellisWrapper:
         print(f"CUDA is available: {torch.cuda.is_available()}")
         if torch.cuda.is_available():
             # Get the current device
-            current_device = torch.cuda.current_device()
-
-            # Print device properties
-            print(f"\nCurrent CUDA device: {torch.cuda.get_device_name(current_device)}")
-            print(f"Device capability: {torch.cuda.get_device_capability(current_device)}")
-            print(f"CUDA version: {torch.cuda.get_driver_version()}")
-            print(f"Total memory: {torch.cuda.get_device_properties(current_device).total_memory / 1024**3:.2f} GB")
-            # we only work with cuda 12.4.x
-            if torch.cuda.get_driver_version() < 12400:
-                print("CUDA version is not 12.4 - please install torch with CUDA 12.4")
-                self.state = TrellisState.ERROR
-                return
             self.initialize()
         else:
             print("No GPU available - please to install torch with GPU support")
@@ -49,7 +47,6 @@ class TrellisWrapper:
 
     def initialize(self):
         from .TRELLIS.trellis.pipelines import TrellisImageTo3DPipeline
-        from .TRELLIS.trellis.utils import postprocessing_utils
         if self.state in [TrellisState.INITIALIZING, TrellisState.READY]:
             return self.state == TrellisState.READY
 
@@ -67,22 +64,23 @@ class TrellisWrapper:
         if self.state != TrellisState.READY:
             return
         # make sure we destroy the pipeline and all the models and free the GPU memory
-        self.pipeline.cpu()
         # destroy the pipeline
         del self.pipeline
+        gc.collect()
+        torch.cuda.empty_cache()
         self.pipeline = None
         self.state = TrellisState.UNINITIALIZED
         print("shutdown complete")
 
     def generate(self,
-                       image: Image.Image,
-                       ss_sampling_steps: int = 12,
-                       ss_guidance_strength: float = 7.5,
-                       slat_sampling_steps: int = 12,
-                       slat_guidance_strength: float = 3.0,
-                       seed: int = 1,
-                       mesh_simplify: float = 0.95,
-                       texture_size: int = 1024) -> bytes:
+                 image: Image.Image,
+                 ss_sampling_steps: int = 12,
+                 ss_guidance_strength: float = 7.5,
+                 slat_sampling_steps: int = 12,
+                 slat_guidance_strength: float = 3.0,
+                 seed: int = 1,
+                 mesh_simplify: float = 0.95,
+                 texture_size: int = 1024) -> bytes:
 
         if self.state != TrellisState.READY:
             self.initialize()
@@ -104,6 +102,7 @@ class TrellisWrapper:
                 "cfg_strength": slat_guidance_strength,
             }
         )
+        from .TRELLIS.trellis.utils import postprocessing_utils
         glb = postprocessing_utils.to_glb(
             outputs['gaussian'][0],
             outputs['mesh'][0],

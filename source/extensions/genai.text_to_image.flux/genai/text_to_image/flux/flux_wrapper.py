@@ -4,7 +4,7 @@ from enum import Enum
 from diffusers import FluxPipeline
 from transformers import pipeline
 from huggingface_hub import hf_hub_download
-
+import gc
 import warnings
 
 
@@ -17,6 +17,12 @@ class FluxState(Enum):
 
 _flux_instance = None
 
+def destroy_flux_instance():
+    global _flux_instance
+    print("destroy flux_instance...")
+    if _flux_instance is not None:
+        _flux_instance.shutdown()
+    _flux_instance = None
 
 def get_flux_instance():
     """Get the singleton instance of FluxWrapper."""
@@ -45,9 +51,17 @@ class FluxWrapper:
             print("No GPU available - please to install torch with GPU support")
 
     def shutdown(self):
-        print("shutdown...")
+        print("pipeline shutdown...")
+        if self.pipeline is not None:
+            # destroy the pipeline
+            del self.pipeline
+            gc.collect()
+            torch.cuda.empty_cache()
+            print("pipeline shutdown done")
         self.pipeline = None
+
         self.state = FluxState.UNINITIALIZED
+        print("pipeline shutdown done")
 
     def initialize(self):
         if self.state in [FluxState.INITIALIZING, FluxState.READY]:

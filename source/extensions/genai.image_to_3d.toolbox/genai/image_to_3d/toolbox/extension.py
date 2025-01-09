@@ -77,7 +77,9 @@ class ImageTo3dToolboxExtension(omni.ext.IExt):
             import_button_label="open",
             import_handler=self.on_open_image_handler,
             show_only_folders=False,
-            file_extension_types=[("*.png", "PNG files")],
+            file_extension_types=[("*.png", "PNG files"),
+                                  ("*.jpg", "JPG files"),
+                                  ("*.jpeg", "JPEG files")],
             file_extension="png")
 
     def update_image(self):
@@ -95,7 +97,7 @@ class ImageTo3dToolboxExtension(omni.ext.IExt):
 
         self._empty_image_path = f"{self._data_dir}/image_icon.svg"
         self._window = ui.Window(
-            "GenAI Image To 3D Toolbox", width=300, height=300
+            "GenAI Image To 3D Toolbox", width=400, height=360
         )
 
         with self._window.frame:

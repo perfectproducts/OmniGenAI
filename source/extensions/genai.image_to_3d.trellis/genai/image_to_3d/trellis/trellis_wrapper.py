@@ -22,7 +22,7 @@ def destroy_trellis_instance():
         _trellis_instance = None
         gc.collect()
         torch.cuda.empty_cache()
-
+        print("trellis_instance shutdown done")
 
 def get_trellis_instance():
     global _trellis_instance

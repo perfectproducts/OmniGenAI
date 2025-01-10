@@ -12,7 +12,7 @@ import omni.ext
 import omni.ui as ui
 import os
 from omni.kit.window.file_importer import get_file_importer
-
+from genai.text_to_image.flux import destroy_flux_instance
 
 # Any class derived from `omni.ext.IExt` in the top level module (defined in
 # `python.modules` of `extension.toml`) will be instantiated when the extension
@@ -72,6 +72,12 @@ class TextToImageExtension(omni.ext.IExt):
         else:
             self.image_view.source_url = self._empty_image_path
 
+    def on_deactivate_clicked(self):
+        print("deactivate clicked")
+        destroy_flux_instance()
+        self.image_path = None
+        self.update_image()
+
     def on_startup(self, _ext_id):
         """This is called every time the extension is activated."""
         print("[genai.text_to_image.toolbox] Extension startup")
@@ -83,19 +89,23 @@ class TextToImageExtension(omni.ext.IExt):
         self._count = 0
         self._image_height = 512
         self._image_width = 512
+
         self._window = ui.Window(
             "Generative AI Text To Image Toolbox", width=410, height=670
         )
         with self._window.frame:
             with ui.VStack():
+
                 ui.Label("Flux Text To Image", style={"font_size": 18.0}, height=24)
-                 # prompt input
+
+                # prompt input
                 ui.Label("Prompt")
                 self.prompt_input_model = ui.StringField(height=100).model
                 self.prompt_input_model.set_value("a fruit basket")
                 with ui.HStack():
-                    ui.Button("Generate Image", clicked_fn=self.on_generate_clicked,height=40)
                     ui.Button("...", clicked_fn=self.on_select_image_directory_clicked,height=40, width=40, tooltip="select image directory")
+                    ui.Button("Generate Image", clicked_fn=self.on_generate_clicked,height=40)
+                    ui.Button("X", clicked_fn=self.on_deactivate_clicked,height=40, width=40, tooltip="clear pipline")
                 # add a image view
                 ui.Label("Image")
                 self.image_view = ui.Image(width=400, height=400, alignment=ui.Alignment.CENTER)

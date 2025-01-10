@@ -17,17 +17,32 @@ class FluxState(Enum):
 
 _flux_instance = None
 
+def dump_memory():
+    # Confirm GPU memory is freed
+    print(f"Allocated memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+
 def destroy_flux_instance():
     global _flux_instance
     print("destroy flux_instance...")
+    dump_memory()
     if _flux_instance is not None:
         _flux_instance.shutdown()
-    _flux_instance = None
+        _flux_instance = None
+        torch.cuda.empty_cache()
+        gc.collect()
+        dump_memory()
+
+        print("flux_instance shutdown done")
+    else:
+        print("flux_instance is not initialized")
 
 def get_flux_instance():
     """Get the singleton instance of FluxWrapper."""
+    print("get_flux_instance...")
     global _flux_instance
     if _flux_instance is None:
+        print("creating flux_instance...")
         _flux_instance = FluxWrapper()
     return _flux_instance
 
@@ -39,29 +54,24 @@ class FluxWrapper:
 
         # Check CUDA availability
         print(f"CUDA is available: {torch.cuda.is_available()}")
-        if torch.cuda.is_available():
-            # Get the current device
-            current_device = torch.cuda.current_device()
-
-            # Print device properties
-            print(f"\nCurrent CUDA device: {torch.cuda.get_device_name(current_device)}")
-            print(f"Device capability: {torch.cuda.get_device_capability(current_device)}")
-            print(f"Total memory: {torch.cuda.get_device_properties(current_device).total_memory / 1024**3:.2f} GB")
-        else:
+        if not torch.cuda.is_available():
             print("No GPU available - please to install torch with GPU support")
+
 
     def shutdown(self):
         print("pipeline shutdown...")
         if self.pipeline is not None:
             # destroy the pipeline
             del self.pipeline
-            gc.collect()
+            self.pipeline = None
             torch.cuda.empty_cache()
+            gc.collect()
             print("pipeline shutdown done")
-        self.pipeline = None
 
+        else:
+            print("pipeline is not initialized")
         self.state = FluxState.UNINITIALIZED
-        print("pipeline shutdown done")
+
 
     def initialize(self):
         if self.state in [FluxState.INITIALIZING, FluxState.READY]:

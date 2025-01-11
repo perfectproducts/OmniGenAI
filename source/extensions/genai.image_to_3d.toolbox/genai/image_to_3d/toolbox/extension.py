@@ -13,6 +13,7 @@ import omni.ui as ui
 import os
 from omni.kit.window.file_importer import get_file_importer
 import asyncio
+from genai.image_to_3d.trellis.extension import destroy_trellis_instance
 
 # Any class derived from `omni.ext.IExt` in the top level module (defined in
 # `python.modules` of `extension.toml`) will be instantiated when the extension
@@ -89,6 +90,12 @@ class ImageTo3dToolboxExtension(omni.ext.IExt):
         else:
             self.image_preview.source_url = self._image_path
 
+    def on_deactivate_clicked(self):
+        print("deactivate clicked")
+        destroy_trellis_instance()
+        self._image_path = None
+        self.update_image()
+
     def on_startup(self, _ext_id):
         """This is called every time the extension is activated."""
         print("[genai.image_to_3d.toolbox] Extension startup")
@@ -111,6 +118,7 @@ class ImageTo3dToolboxExtension(omni.ext.IExt):
                 with ui.HStack():
                     ui.Button("Generate 3D", clicked_fn=self.on_generate_3d_clicked,height=40)
                     ui.Button("...", clicked_fn=self.on_select_image_clicked,height=40, width=40)
+                    ui.Button("X", clicked_fn=self.on_deactivate_clicked,height=40, width=40, tooltip="Deactivate Trellis")
 
         self.update_image()
 

@@ -12,7 +12,7 @@ import omni.ext
 import omni.ui as ui
 import os
 from omni.kit.window.file_importer import get_file_importer
-from genai.text_to_image.flux import destroy_flux_instance
+
 
 # Any class derived from `omni.ext.IExt` in the top level module (defined in
 # `python.modules` of `extension.toml`) will be instantiated when the extension
@@ -74,7 +74,7 @@ class TextToImageExtension(omni.ext.IExt):
 
     def on_deactivate_clicked(self):
         print("deactivate clicked")
-        destroy_flux_instance()
+
         self.image_path = None
         self.update_image()
 

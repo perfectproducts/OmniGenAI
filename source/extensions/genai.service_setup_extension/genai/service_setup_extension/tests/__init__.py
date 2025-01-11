@@ -8,7 +8,5 @@
 # without an express license agreement from NVIDIA CORPORATION or
 # its affiliates is strictly prohibited.
 
-from .extension import *
-from .check_packages import *
-from .commands import *
-from .trellis_wrapper import *
+from .test_benchmarks import *
+from .test_service import *

@@ -11,7 +11,8 @@
 
 import omni.ext
 from .commands import GenerateImageFlux
-from .flux_wrapper import destroy_flux_instance
+from .flux_wrapper import FluxWrapper
+
 
 # Any class derived from `omni.ext.IExt` in the top level module (defined in
 # `python.modules` of `extension.toml`) will be instantiated when the extension
@@ -31,5 +32,5 @@ class FluxExtension(omni.ext.IExt):
         """This is called every time the extension is deactivated. It is used
         to clean up the extension state."""
         print("[genai.text_to_image.flux] Extension shutdown")
-        destroy_flux_instance()
+        FluxWrapper.destroy_instance()
         omni.kit.commands.unregister(GenerateImageFlux)

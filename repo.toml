@@ -81,7 +81,7 @@ publish_pip_cache = false
 
 [repo_precache_exts]
 # Apps to run and precache
-apps = ["${root}/source/apps/genai.toolkit.kit", "${root}/source/apps/genai.toolkit_streaming.kit"]
+apps = ["${root}/source/apps/genai.toolkit.kit", "${root}/source/apps/genai.toolkit_streaming.kit", "${root}/source/apps/genai.services.kit"]
 
 registries = [
 # PUBLIC REGISTRIES - UNCOMMENT BEFORE STAGING TO GITHUB

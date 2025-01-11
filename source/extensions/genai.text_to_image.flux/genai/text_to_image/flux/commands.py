@@ -1,6 +1,6 @@
 import omni.kit.commands
 from PIL import Image
-from .flux_wrapper import get_flux_instance
+from .flux_wrapper import FluxWrapper
 
 
 class GenerateImageFlux(omni.kit.commands.Command):
@@ -22,7 +22,7 @@ class GenerateImageFlux(omni.kit.commands.Command):
         self.seed = seed
 
     def do(self):
-        flux = get_flux_instance()
+        flux = FluxWrapper()
         try:
             image: Image.Image = flux.generate(self.prompt,
                                                self.height,
@@ -31,7 +31,9 @@ class GenerateImageFlux(omni.kit.commands.Command):
                                                self.guidance_scale,
                                                self.seed)
             image.save(self.asset_png_path)
+            FluxWrapper.destroy_instance()
         except Exception as e:
             print(f"Error generating image: {e}")
+            FluxWrapper.destroy_instance()
             return False
         return True

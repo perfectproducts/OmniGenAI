@@ -13,14 +13,17 @@ from omni.services.core import main
 from .text_to_image_service import router as text_to_image_router
 import carb.settings
 
-class ServiceSetupExtension(omni.ext.IExt):
+class GenAIServiceSetupExtension(omni.ext.IExt):
     """This extension manages the service setup"""
     def on_startup(self, _ext_id):
         """This is called every time the extension is activated."""
-        self.is_text_to_image_enabled = True  # TODO: make this configurable
-        if self.is_text_to_image_enabled:
-            main.register_router(text_to_image_router)
         settings = carb.settings.get_settings()
+        self.is_text_to_image_enabled = settings.get_as_bool("text_to_image_enabled")
+        print(f"[genai.service_setup_extension] text_to_image_enabled: {self.is_text_to_image_enabled}")
+        if self.is_text_to_image_enabled:
+            print("[genai.service_setup_extension] Registering text_to_image_router")
+            main.register_router(text_to_image_router)
+
         local_host = settings.get_as_string("exts/omni.services.transport.server.http/host")
         local_port = settings.get_as_int("exts/omni.services.transport.server.http/port")
         print(f"[genai.service_setup_extension] ServiceSetupExtension startup : Local Docs -  http://{local_host}:{local_port}/docs")

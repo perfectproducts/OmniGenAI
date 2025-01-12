@@ -11,7 +11,6 @@
 
 import omni.ext
 from .commands import GenerateImageFlux
-from .flux_wrapper import FluxWrapper
 
 
 # Any class derived from `omni.ext.IExt` in the top level module (defined in
@@ -32,5 +31,4 @@ class FluxExtension(omni.ext.IExt):
         """This is called every time the extension is deactivated. It is used
         to clean up the extension state."""
         print("[genai.text_to_image.flux] Extension shutdown")
-        FluxWrapper.destroy_instance()
         omni.kit.commands.unregister(GenerateImageFlux)

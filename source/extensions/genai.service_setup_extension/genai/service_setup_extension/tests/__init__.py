@@ -8,5 +8,4 @@
 # without an express license agreement from NVIDIA CORPORATION or
 # its affiliates is strictly prohibited.
 
-from .test_benchmarks import *
 from .test_service import *

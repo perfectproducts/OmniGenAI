@@ -47,3 +47,8 @@ dependencies = [
 
 args = [
 ]
+
+
+[python.pipapi]
+requirements = ['requests', 'base64']
+use_online_index = true

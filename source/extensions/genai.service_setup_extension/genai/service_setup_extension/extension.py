@@ -10,18 +10,21 @@
 
 import omni.ext
 from omni.services.core import main
-from .text_to_image_service import router
+from .text_to_image_service import router as text_to_image_router
 
 
 class ServiceSetupExtension(omni.ext.IExt):
     """This extension manages the service setup"""
     def on_startup(self, _ext_id):
         """This is called every time the extension is activated."""
-        main.register_router(router)
+        self.is_text_to_image_enabled = True  # TODO: make this configurable
+        if self.is_text_to_image_enabled:
+            main.register_router(text_to_image_router)
         print("[genai.service_setup_extension] ServiceSetupExtension startup : Local Docs -  http://localhost:8011/docs")
 
     def on_shutdown(self):
         """This is called every time the extension is deactivated. It is used
         to clean up the extension state."""
-        main.deregister_router(router)
+        if self.is_text_to_image_enabled:
+            main.deregister_router(text_to_image_router)
         print("[genai.service_setup_extension] ServiceSetupExtension shutdown")

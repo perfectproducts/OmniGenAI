@@ -12,8 +12,12 @@ import omni.ext
 import omni.ui as ui
 import os
 from omni.kit.window.file_importer import get_file_importer
-
-
+import carb
+import requests
+import base64
+from PIL import Image
+import io
+from .flux_service_client import FluxServiceClient
 # Any class derived from `omni.ext.IExt` in the top level module (defined in
 # `python.modules` of `extension.toml`) will be instantiated when the extension
 # gets enabled, and `on_startup(ext_id)` will be called. Later when the
@@ -28,19 +32,33 @@ class TextToImageExtension(omni.ext.IExt):
         print("Generate button clicked")
         prompt = self.prompt_input_model.get_value_as_string()
         outpath = os.path.join(self._image_directory, f"{prompt.replace(' ', '_').replace('.', '_').replace('/', '_').replace(',', '_')}.png")
-        (result, err) = omni.kit.commands.execute("GenerateImageFlux",
+        if self._is_client:
+            # call server
+            # use request to send a post request to the server
+            # the server will return the image encoded in base64
+
+            client = FluxServiceClient(host=self._host, port=self._port)
+            image_bytes64 = client.generate_image(prompt=prompt, height=self._image_height, width=self._image_width, seed=0)
+            image_bytes = base64.b64decode(image_bytes64)
+            image = Image.open(io.BytesIO(image_bytes))
+            print(f"image size: {image.size} -> save to {outpath}")
+            image.save(outpath)
+            self.image_path = outpath
+
+            # the client will update the image path
+        else:
+            (result, err) = omni.kit.commands.execute("GenerateImageFlux",
                                                   prompt=prompt,
                                                   asset_png_path=outpath,
                                                   height=self._image_height,
                                                   width=self._image_width)
-        if result:
-            self.image_path = outpath
+            if result:
+                self.image_path = outpath
 
-        else:
-            print(err)
-            self.image_path = None
+            else:
+                print(err)
+                self.image_path = None
         self.update_image()
-
 
     def on_select_image_directory_handler(self,
                                           filename: str,
@@ -89,6 +107,15 @@ class TextToImageExtension(omni.ext.IExt):
         self._count = 0
         self._image_height = 512
         self._image_width = 512
+        settings = carb.settings.get_settings()
+
+        self._is_client = True
+        self._host = settings.get_as_string("/persistent/flux/host")
+        if self._host == "":
+            self._host = "localhost"
+        self._port = settings.get_as_int("/persistent/flux/port")
+        if self._port == 0:
+            self._port = 8011
 
         self._window = ui.Window(
             "Generative AI Text To Image Toolbox", width=410, height=670

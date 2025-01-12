@@ -10,18 +10,19 @@
 
 from pathlib import Path
 from pydantic import BaseModel, Field
-
+import io
+import base64
 
 from omni.services.core.routers import ServiceAPIRouter
 from genai.text_to_image.flux import FluxWrapper
-
+from PIL import Image
 router = ServiceAPIRouter(tags=["GenAI Text to Image Service Setup"])
 
 
 class TextToImageDataModel(BaseModel):
 
     prompt: str = Field(
-        default="",
+        default="a beautiful image of a cat",
         title="Prompt",
         description="Prompt for the image to be generated",
     )
@@ -59,18 +60,21 @@ class TextToImageDataModel(BaseModel):
     summary="Generate an image",
     description="An endpoint to generate an image",
 )
-
-async def generate_image(image_data: TextToImageDataModel):
+async def generate_image(image_data: TextToImageDataModel) -> bytes:
     print("[genai.service_setup_extension] generate_image was called")
 
-    flux = FluxWrapper()
+    flux = FluxWrapper.get_instance()
 
     image: Image.Image = flux.generate(image_data.prompt,
-                                               image_data.height,
-                                               image_data.width,
-                                               image_data.inference_steps,
-                                               image_data.guidance_scale,
-                                               image_data.seed)
+                                       image_data.height,
+                                       image_data.width,
+                                       image_data.inference_steps,
+                                       image_data.guidance_scale,
+                                       image_data.seed)
 
-
-    return msg
+    # return image as bytes with base64 encoding
+    image_bytes = io.BytesIO()
+    image.save(image_bytes, format="PNG")
+    image_bytes.seek(0)
+    image_bytes_base64 = base64.b64encode(image_bytes.getvalue()).decode("utf-8")
+    return image_bytes_base64

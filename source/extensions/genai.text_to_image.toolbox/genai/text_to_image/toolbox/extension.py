@@ -128,9 +128,11 @@ class TextToImageExtension(omni.ext.IExt):
         print("[genai.text_to_image.toolbox] Extension startup")
         self.image_path = None
         self._data_dir = os.path.abspath(os.path.dirname(os.path.realpath(__file__))+"/../../../data")
-        print("-->" +self._data_dir)
+
         self._empty_image_path = f"{self._data_dir}/image_icon.svg"
-        self._image_directory = self._data_dir
+        self._image_directory = self._data_dir+"/images"
+        if not os.path.exists(self._image_directory):
+            os.makedirs(self._image_directory)
         self._count = 0
         self._image_height = 512
         self._image_width = 512
@@ -157,9 +159,9 @@ class TextToImageExtension(omni.ext.IExt):
                 self.prompt_input_model = ui.StringField(height=100).model
                 self.prompt_input_model.set_value("a fruit basket")
                 with ui.HStack():
-                    ui.Button("...", clicked_fn=self.on_select_image_directory_clicked,height=40, width=40, tooltip="select image directory")
+                    ui.Button(image_url=f"{self._data_dir}/folder.svg", clicked_fn=self.on_select_image_directory_clicked,height=40, width=40, tooltip="select image directory")
                     ui.Button("Generate Image", clicked_fn=self.on_generate_clicked,height=40)
-                    ui.Button("X", clicked_fn=self.on_configure_clicked,height=40, width=40, tooltip="configure")
+                    ui.Button(image_url=f"{self._data_dir}/settings.svg", clicked_fn=self.on_configure_clicked,height=40, width=40, tooltip="configure")
                 # add a image view
                 ui.Label("Image")
                 self.image_view = ui.Image(width=400, height=400, alignment=ui.Alignment.CENTER)

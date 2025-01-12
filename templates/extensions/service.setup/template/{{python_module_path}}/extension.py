@@ -11,6 +11,7 @@
 import omni.ext
 from omni.services.core import main
 from .service import router
+import carb.settings
 
 
 # Any class derived from `omni.ext.IExt` in the top level module (defined in
@@ -25,7 +26,10 @@ class MyExtension(omni.ext.IExt):
     def on_startup(self, _ext_id):
         """This is called every time the extension is activated."""
         main.register_router(router)
-        print("[{{ extension_name }}] MyExtension startup : Local Docs -  http://localhost:8011/docs")
+        settings = carb.settings.get_settings()
+        local_host = settings.get_as_string("exts/omni.services.transport.server.http/host")
+        local_port = settings.get_as_int("exts/omni.services.transport.server.http/port")
+        print(f"[{{ extension_name }}] MyExtension startup : Local Docs -  http://{local_host}:{local_port}/docs")
 
     def on_shutdown(self):
         """This is called every time the extension is deactivated. It is used

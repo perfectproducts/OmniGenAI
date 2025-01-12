@@ -29,6 +29,7 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-app-template"  # URL of th
 "genai.text_to_image.flux" = {}
 
 [settings]
+text_to_image_enabled = true
 
 
 [[python.module]]  # Main python module this extension provides, it will be publicly available as "import genai.service_setup_extension"

@@ -20,9 +20,10 @@ def destroy_trellis_instance():
     if _trellis_instance is not None:
         _trellis_instance.shutdown()
         _trellis_instance = None
-        gc.collect()
         torch.cuda.empty_cache()
+        gc.collect()
         print("trellis_instance shutdown done")
+
 
 def get_trellis_instance():
     global _trellis_instance
@@ -66,9 +67,10 @@ class TrellisWrapper:
         # make sure we destroy the pipeline and all the models and free the GPU memory
         # destroy the pipeline
         del self.pipeline
-        gc.collect()
+
         torch.cuda.empty_cache()
         self.pipeline = None
+        gc.collect()
         self.state = TrellisState.UNINITIALIZED
         print("shutdown complete")
 

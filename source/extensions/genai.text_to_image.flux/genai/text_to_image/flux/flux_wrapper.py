@@ -6,57 +6,27 @@ from transformers import pipeline
 from huggingface_hub import hf_hub_download
 import gc
 import warnings
-
-
-class FluxState(Enum):
-    UNINITIALIZED = "uninitialized"
-    INITIALIZING = "initializing"
-    READY = "ready"
-    ERROR = "error"
-
-
-_flux_instance = None
-
-def dump_memory():
-    # Confirm GPU memory is freed
-    print(f"Allocated memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
-    print(f"Reserved memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
-
-def destroy_flux_instance():
-    global _flux_instance
-    print("destroy flux_instance...")
-    dump_memory()
-    if _flux_instance is not None:
-        _flux_instance.shutdown()
-        _flux_instance = None
-        torch.cuda.empty_cache()
-        gc.collect()
-        dump_memory()
-
-        print("flux_instance shutdown done")
-    else:
-        print("flux_instance is not initialized")
-
-def get_flux_instance():
-    """Get the singleton instance of FluxWrapper."""
-    print("get_flux_instance...")
-    global _flux_instance
-    if _flux_instance is None:
-        print("creating flux_instance...")
-        _flux_instance = FluxWrapper()
-    return _flux_instance
+import time
+import subprocess
+import re
 
 
 class FluxWrapper:
-    def __init__(self):
-        self.state = FluxState.UNINITIALIZED
-        self.pipeline = None
+    _instance = None
 
+    def __init__(self):
+        print("initializing flux wrapper...")
+
+        if self._instance is not None:
+            print("flux wrapper already initialized")
+            return
+        self.pipeline = None
+        self.initialized = False
+        self._initialize()
         # Check CUDA availability
         print(f"CUDA is available: {torch.cuda.is_available()}")
         if not torch.cuda.is_available():
-            print("No GPU available - please to install torch with GPU support")
-
+            print("No GPU available - please to install torch with GPU support")        
 
     def shutdown(self):
         print("pipeline shutdown...")
@@ -64,23 +34,44 @@ class FluxWrapper:
             # destroy the pipeline
             del self.pipeline
             self.pipeline = None
+            # Force CUDA memory cleanup
             torch.cuda.empty_cache()
-            gc.collect()
+            torch.cuda.synchronize()
+
+            # Run garbage collection multiple times
+            for _ in range(3):
+                gc.collect()
+                torch.cuda.empty_cache()
+                time.sleep(1)
             print("pipeline shutdown done")
 
         else:
             print("pipeline is not initialized")
-        self.state = FluxState.UNINITIALIZED
 
+    def _check_free_memory(self, needed_memory_gb:float):
+        gpu_info = self.get_gpu_memory_info()
+        if gpu_info is None:
+            print("Unable to get GPU memory info - nvidia-smi not available")
+            return False
+        total_memory_gb = gpu_info['total_gb']
+        reserved_memory_gb = gpu_info['used_gb']
+        free_memory_gb = total_memory_gb - reserved_memory_gb  # free
+        print(f"total memory: {total_memory_gb:.2f}GB, reserved: {reserved_memory_gb:.2f}GB, free: {free_memory_gb:.2f}GB")
+        if free_memory_gb < needed_memory_gb:
+            print(f"not enough free memory - please to install torch with GPU support")
+            return False
+        return True
 
-    def initialize(self):
-        if self.state in [FluxState.INITIALIZING, FluxState.READY]:
-            return self.state == FluxState.READY
-
-        self.state = FluxState.INITIALIZING
+    def _initialize(self):
         print("initializing...")
-
+        if self.initialized:
+            print("flux wrapper already initialized")
+            return True
+        if not self._check_free_memory(32.3):
+            print("not enough free memory - please to install torch with GPU support")
+            return False
         try:
+            print("initializing flux pipeline...")
             warnings.filterwarnings("ignore", message="You set `add_prefix_space`.*")
 
             # Initialize Flux pipeline
@@ -98,11 +89,11 @@ class FluxWrapper:
             )
             self.pipeline.fuse_lora(lora_scale=0.125)
             self.pipeline.to(device="cuda", dtype=torch.bfloat16)
-            self.state = FluxState.READY
+            self.initialized = True
+            self.print_memory_status()
             return True
         except Exception as e:
             print(f"Error initializing Flux pipeline: {e}")
-            self.state = FluxState.ERROR
             return False
 
     def generate(self,
@@ -112,11 +103,10 @@ class FluxWrapper:
                  inference_steps=8,
                  guidance_scale=3.5,
                  seed=None) -> Image.Image:
-        if self.state != FluxState.READY:
-            self.initialize()
-        if self.state != FluxState.READY:
-            print("Flux pipeline not initialized")
-            return None
+        if not self.initialized:
+            if not self._initialize():
+                print("flux wrapper is not initialized")
+                return []
 
         formatted_prompt = f"wbgmsst, 3D, {prompt} ,white background"
 
@@ -139,4 +129,41 @@ class FluxWrapper:
         # debug: save image to file
         #print(f"generated_image_{seed}.png")
         #generated_image.save(f"generated_image_{seed}.png")
+        print("generated image saved")
         return generated_image
+
+    def print_memory_status(self):
+        gpu_info = self.get_gpu_memory_info()
+        if gpu_info:
+            print("\nGPU Memory Status:")
+            print(f"  System-wide:")
+            print(f"    Total:     {gpu_info['total_gb']:.2f}GB")
+            print(f"    Used:      {gpu_info['used_gb']:.2f}GB")
+            print(f"    Free:      {gpu_info['free_gb']:.2f}GB")
+            print(f"  This Process:")
+            print(f"    Reserved:  {torch.cuda.memory_reserved(0) / 1024**3:.2f}GB")
+            print(f"    Allocated: {torch.cuda.memory_allocated(0) / 1024**3:.2f}GB")
+
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    def get_gpu_memory_info(self):
+        try:
+            # Run nvidia-smi command
+            result = subprocess.check_output(['nvidia-smi', '--query-gpu=memory.total,memory.used,memory.free', '--format=csv,nounits,noheader'])
+            total, used, free = map(int, result.decode('utf-8').strip().split(','))
+
+            return {
+                'total_mb': total,
+                'used_mb': used,
+                'free_mb': free,
+                'free_gb': free / 1024,
+                'used_gb': used / 1024,
+                'total_gb': total / 1024
+            }
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            print("Unable to get GPU memory info - nvidia-smi not available")
+            return None

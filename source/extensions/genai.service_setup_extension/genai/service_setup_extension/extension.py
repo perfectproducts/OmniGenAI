@@ -10,29 +10,27 @@
 
 import omni.ext
 from omni.services.core import main
-from .service import router
+from .text_to_image_service import router as text_to_image_router
 import carb.settings
 
-
-# Any class derived from `omni.ext.IExt` in the top level module (defined in
-# `python.modules` of `extension.toml`) will be instantiated when the extension
-# gets enabled, and `on_startup(ext_id)` will be called. Later when the
-# extension gets disabled on_shutdown() is called.
-class MyExtension(omni.ext.IExt):
+class GenAIServiceSetupExtension(omni.ext.IExt):
     """This extension manages the service setup"""
-    # ext_id is the current extension id. It can be used with the extension
-    # manager to query additional information, like where this extension is
-    # located on the filesystem.
     def on_startup(self, _ext_id):
         """This is called every time the extension is activated."""
-        main.register_router(router)
         settings = carb.settings.get_settings()
+        self.is_text_to_image_enabled = settings.get_as_bool("text_to_image_enabled")
+        print(f"[genai.service_setup_extension] text_to_image_enabled: {self.is_text_to_image_enabled}")
+        if self.is_text_to_image_enabled:
+            print("[genai.service_setup_extension] Registering text_to_image_router")
+            main.register_router(text_to_image_router)
+
         local_host = settings.get_as_string("exts/omni.services.transport.server.http/host")
         local_port = settings.get_as_int("exts/omni.services.transport.server.http/port")
-        print(f"[{{ extension_name }}] MyExtension startup : Local Docs -  http://{local_host}:{local_port}/docs")
+        print(f"[genai.service_setup_extension] ServiceSetupExtension startup : Local Docs -  http://{local_host}:{local_port}/docs")
 
     def on_shutdown(self):
         """This is called every time the extension is deactivated. It is used
         to clean up the extension state."""
-        main.deregister_router(router)
-        print("[{{ extension_name }}] MyExtension shutdown")
+        if self.is_text_to_image_enabled:
+            main.deregister_router(text_to_image_router)
+        print("[genai.service_setup_extension] ServiceSetupExtension shutdown")

@@ -12,8 +12,13 @@ import omni.ext
 import omni.ui as ui
 import os
 from omni.kit.window.file_importer import get_file_importer
-from genai.text_to_image.flux import destroy_flux_instance
-
+import carb
+import requests
+import base64
+from PIL import Image
+import io
+from .flux_service_client import FluxServiceClient
+from omni.kit.window.popup_dialog import FormDialog
 # Any class derived from `omni.ext.IExt` in the top level module (defined in
 # `python.modules` of `extension.toml`) will be instantiated when the extension
 # gets enabled, and `on_startup(ext_id)` will be called. Later when the
@@ -28,19 +33,33 @@ class TextToImageExtension(omni.ext.IExt):
         print("Generate button clicked")
         prompt = self.prompt_input_model.get_value_as_string()
         outpath = os.path.join(self._image_directory, f"{prompt.replace(' ', '_').replace('.', '_').replace('/', '_').replace(',', '_')}.png")
-        (result, err) = omni.kit.commands.execute("GenerateImageFlux",
+        if self._use_service:
+            # call server
+            # use request to send a post request to the server
+            # the server will return the image encoded in base64
+
+            client = FluxServiceClient(host=self._service_host, port=self._service_port)
+            image_bytes64 = client.generate_image(prompt=prompt, height=self._image_height, width=self._image_width, seed=0)
+            image_bytes = base64.b64decode(image_bytes64)
+            image = Image.open(io.BytesIO(image_bytes))
+            print(f"image size: {image.size} -> save to {outpath}")
+            image.save(outpath)
+            self.image_path = outpath
+
+            # the client will update the image path
+        else:
+            (result, err) = omni.kit.commands.execute("GenerateImageFlux",
                                                   prompt=prompt,
                                                   asset_png_path=outpath,
                                                   height=self._image_height,
                                                   width=self._image_width)
-        if result:
-            self.image_path = outpath
+            if result:
+                self.image_path = outpath
 
-        else:
-            print(err)
-            self.image_path = None
+            else:
+                print(err)
+                self.image_path = None
         self.update_image()
-
 
     def on_select_image_directory_handler(self,
                                           filename: str,
@@ -72,23 +91,60 @@ class TextToImageExtension(omni.ext.IExt):
         else:
             self.image_view.source_url = self._empty_image_path
 
-    def on_deactivate_clicked(self):
-        print("deactivate clicked")
-        destroy_flux_instance()
-        self.image_path = None
-        self.update_image()
+
+    def _on_settings_ok(self, dialog: FormDialog):
+        values = dialog.get_values()
+        self._use_service = values["use_service"]
+        self._service_host = values["host"]
+        self._service_port = values["port"]
+        settings = carb.settings.get_settings()
+        settings.set("/persistent/flux/use_service", self._use_service)
+        settings.set("/persistent/flux/host", self._service_host)
+        settings.set("/persistent/flux/port", self._service_port)
+        dialog.hide()
+
+    # build the dialog just by adding field_defs
+    def _build_settings_dialog(self) -> FormDialog:
+
+        field_defs = [
+            FormDialog.FieldDef("use_service", "use service:  ", ui.CheckBox, self._use_service),
+            FormDialog.FieldDef("host", "host:  ", ui.StringField, self._service_host),
+            FormDialog.FieldDef("port", "port:  ", ui.IntField, self._service_port),
+        ]
+        dialog = FormDialog(
+            title="Settings",
+            message="Please specify the following paths:",
+            field_defs=field_defs,
+            ok_handler=self._on_settings_ok,
+        )
+        return dialog
+
+    def on_configure_clicked(self):
+        dlg = self._build_settings_dialog()
+        dlg.show()
 
     def on_startup(self, _ext_id):
         """This is called every time the extension is activated."""
         print("[genai.text_to_image.toolbox] Extension startup")
         self.image_path = None
         self._data_dir = os.path.abspath(os.path.dirname(os.path.realpath(__file__))+"/../../../data")
-        print("-->" +self._data_dir)
+
         self._empty_image_path = f"{self._data_dir}/image_icon.svg"
-        self._image_directory = self._data_dir
+        self._image_directory = self._data_dir+"/images"
+        if not os.path.exists(self._image_directory):
+            os.makedirs(self._image_directory)
         self._count = 0
         self._image_height = 512
         self._image_width = 512
+        settings = carb.settings.get_settings()
+
+        self._use_service = settings.get_as_bool("/persistent/flux/use_service")
+        self._service_host = settings.get_as_string("host")
+        if self._service_host == "":
+            self._service_host = "192.168.178.198"
+        self._service_port = settings.get_as_int("/persistent/flux/port")
+        if self._service_port == 0:
+            self._service_port = 8011
 
         self._window = ui.Window(
             "Generative AI Text To Image Toolbox", width=410, height=670
@@ -103,9 +159,9 @@ class TextToImageExtension(omni.ext.IExt):
                 self.prompt_input_model = ui.StringField(height=100).model
                 self.prompt_input_model.set_value("a fruit basket")
                 with ui.HStack():
-                    ui.Button("...", clicked_fn=self.on_select_image_directory_clicked,height=40, width=40, tooltip="select image directory")
+                    ui.Button(image_url=f"{self._data_dir}/folder.svg", clicked_fn=self.on_select_image_directory_clicked,height=40, width=40, tooltip="select image directory")
                     ui.Button("Generate Image", clicked_fn=self.on_generate_clicked,height=40)
-                    ui.Button("X", clicked_fn=self.on_deactivate_clicked,height=40, width=40, tooltip="clear pipline")
+                    ui.Button(image_url=f"{self._data_dir}/settings.svg", clicked_fn=self.on_configure_clicked,height=40, width=40, tooltip="configure")
                 # add a image view
                 ui.Label("Image")
                 self.image_view = ui.Image(width=400, height=400, alignment=ui.Alignment.CENTER)

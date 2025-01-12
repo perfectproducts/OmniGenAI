@@ -26,7 +26,7 @@ class FluxWrapper:
         # Check CUDA availability
         print(f"CUDA is available: {torch.cuda.is_available()}")
         if not torch.cuda.is_available():
-            print("No GPU available - please to install torch with GPU support")
+            print("No GPU available - please to install torch with GPU support")        
 
     def shutdown(self):
         print("pipeline shutdown...")

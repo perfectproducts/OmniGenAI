@@ -90,11 +90,10 @@ class ImageTo3dToolboxExtension(omni.ext.IExt):
         else:
             self.image_preview.source_url = self._image_path
 
-    def on_deactivate_clicked(self):
-        print("deactivate clicked")
-        destroy_trellis_instance()
-        self._image_path = None
-        self.update_image()
+
+    def on_configure_clicked(self):
+        print("configure clicked")
+
 
     def on_startup(self, _ext_id):
         """This is called every time the extension is activated."""
@@ -117,8 +116,10 @@ class ImageTo3dToolboxExtension(omni.ext.IExt):
                     ui.Spacer()
                 with ui.HStack():
                     ui.Button("Generate 3D", clicked_fn=self.on_generate_3d_clicked,height=40)
-                    ui.Button("...", clicked_fn=self.on_select_image_clicked,height=40, width=40)
-                    ui.Button("X", clicked_fn=self.on_deactivate_clicked,height=40, width=40, tooltip="Deactivate Trellis")
+                    ui.Button(image_url=f"{self._data_dir}/image_icon_white.svg", clicked_fn=self.on_select_image_clicked,height=40, width=40)
+                    # we dont have anything to configure yet
+                    ui.Button(image_url=f"{self._data_dir}/settings.svg", clicked_fn=self.on_configure_clicked,
+                              height=40, width=40, tooltip="configure", enabled=False, visible=False)
 
         self.update_image()
 

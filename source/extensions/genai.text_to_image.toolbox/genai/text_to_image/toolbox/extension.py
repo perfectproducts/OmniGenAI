@@ -156,7 +156,7 @@ class TextToImageExtension(omni.ext.IExt):
 
                 # prompt input
                 ui.Label("Prompt")
-                self.prompt_input_model = ui.StringField(height=100).model
+                self.prompt_input_model = ui.StringField(height=100, multiline=True).model
                 self.prompt_input_model.set_value("a fruit basket")
                 with ui.HStack():
                     ui.Button(image_url=f"{self._data_dir}/folder.svg", clicked_fn=self.on_select_image_directory_clicked,height=40, width=40, tooltip="select image directory")

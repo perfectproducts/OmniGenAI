@@ -25,6 +25,8 @@ class GenAIServiceSetupExtension(omni.ext.IExt):
             main.register_router(text_to_image_router)
 
         local_host = settings.get_as_string("exts/omni.services.transport.server.http/host")
+        if local_host == "0.0.0.0":
+            local_host = "localhost"
         local_port = settings.get_as_int("exts/omni.services.transport.server.http/port")
         print(f"[genai.service_setup_extension] ServiceSetupExtension startup : Local Docs -  http://{local_host}:{local_port}/docs")
 

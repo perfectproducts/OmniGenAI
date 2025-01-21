@@ -12,6 +12,7 @@
 import omni.ext
 from .commands import GenerateImageFlux
 import carb
+import os
 from huggingface_hub import login
 
 # Any class derived from `omni.ext.IExt` in the top level module (defined in
@@ -28,8 +29,14 @@ class FluxExtension(omni.ext.IExt):
         print("[genai.text_to_image.flux] Extension startup")
         settings = carb.settings.get_settings()
         token = settings.get_as_string("huggingface_hub_token")
+        if not token:
+            # try to get the token from the environment variable
+            token = os.getenv("HUGGINGFACE_HUB_TOKEN")
         if token:
-            login(token=token)            
+            login(token=token)
+        else:
+            print("No huggingface token found")
+            
         omni.kit.commands.register(GenerateImageFlux)
 
     def on_shutdown(self):

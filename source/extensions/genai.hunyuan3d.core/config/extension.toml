@@ -9,7 +9,7 @@
 # its affiliates is strictly prohibited.
 
 [package]
-title = "GenAI Image To 3D Trellis"
+title = "Hunyuan3D-2 Support"
 version = "0.1.0"  # Semantic Versionning is used: https://semver.org/
 description = "The simplest python extension example. Use it as a starting point for your extensions."
 category = "Example"  # How to categorize this in the Extension Manager
@@ -23,45 +23,12 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-app-template"  # URL of th
 
 [dependencies]
 "omni.kit.pip_archive" = {}
-"omni.kit.commands" = {}
-"omni.kit.asset_converter" = {}
-
-[python.pipapi]
-requirements = ['gitpython',
-                'torch==2.5.1',
-                'torchvision',
-                'xformers==0.0.28.post3',
-                'pillow',
-                'imageio',
-                'tqdm',
-                'easydict',
-                'opencv-python-headless',
-                'scipy',
-                'ninja',
-                'onnxruntime',
-                'rembg',
-                'trimesh',
-                'xatlas',
-                'pyvista',
-                'pymeshfix',
-                'igraph',
-                'transformers',
-                'spconv-cu120',
-                'plyfile',
-                'pygltflib',
-                'ipyevents',
-                'ipycanvas',
-                ]
-
-
-extra_args = ["--extra-index-url", "https://download.pytorch.org/whl/cu124"]
-use_online_index = true
 
 [settings]
 
 
-[[python.module]]  # Main python module this extension provides, it will be publicly available as "import genai.image_to_3d.trellis"
-name = "genai.image_to_3d.trellis"
+[[python.module]]  # Main python module this extension provides, it will be publicly available as "import genai.hunyuan3d.core"
+name = "genai.hunyuan3d.core"
 
 
 [documentation]
@@ -70,11 +37,39 @@ pages = [
     "docs/CHANGELOG.md",
 ]
 
+[python.pipapi]
+requirements = [
+    'GitPython',
+    'numpy',
+    'pillow',
+    'torch==2.5.1',
+    'torchvision',
+    'pillow',
+    'imageio',
+    'onnxruntime',
+    'rembg',
+    'trimesh',
+    'pyyaml',
+    'diffusers',
+    'transformers',
+    'einops',
+    'pymeshlab==2023.12.post1',  #need this, otherwise it wil crash on import on windows
+    'accelerate',
+    'sentencepiece',
+    'xatlas',
+    'huggingface_hub',
+    'pygltflib',
+
+]
+extra_args = ["--extra-index-url", "https://download.pytorch.org/whl/cu124"]
+
+use_online_index = true
+
 
 [[test]]
 dependencies = [
-]
-timeout = 900  # 15 minutes timeout since we have to download a lot of files
 
+]
+timeout = 9000  # long timeout since we have to download a lot of files
 args = [
 ]

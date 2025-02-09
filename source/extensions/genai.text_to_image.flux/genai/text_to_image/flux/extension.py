@@ -10,7 +10,7 @@
 # its affiliates is strictly prohibited.
 
 import omni.ext
-from .commands import GenerateImageFlux
+from .flux_commands import GenerateImageFlux
 import carb
 from huggingface_hub import login
 
@@ -18,7 +18,7 @@ from huggingface_hub import login
 # `python.modules` of `extension.toml`) will be instantiated when the extension
 # gets enabled, and `on_startup(ext_id)` will be called. Later when the
 # extension gets disabled on_shutdown() is called.
-class FluxExtension(omni.ext.IExt):
+class FluxCoreExtension(omni.ext.IExt):
     """This is a blank extension template."""
     # ext_id is the current extension id. It can be used with the extension
     # manager to query additional information, like where this extension is
@@ -29,7 +29,7 @@ class FluxExtension(omni.ext.IExt):
         settings = carb.settings.get_settings()
         token = settings.get_as_string("huggingface_hub_token")
         if token:
-            login(token=token)            
+            login(token=token)
         omni.kit.commands.register(GenerateImageFlux)
 
     def on_shutdown(self):

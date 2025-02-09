@@ -14,6 +14,8 @@
 # Import extension python module we are testing with absolute import path, as if we are an external user (other extension)
 from genai.hunyuan3d.core import HunyuanWrapper
 import omni.kit.test
+import os
+import shutil
 
 
 # Having a test class derived from omni.kit.test.AsyncTestCase declared on the root of the module
@@ -21,15 +23,27 @@ import omni.kit.test
 class Test(omni.kit.test.AsyncTestCase):
     # Before running each test
     async def setUp(self):
-        pass
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
+        self.output_dir = os.path.join(os.path.dirname(__file__), "output")
+        # delete output directory
+        if os.path.exists(self.output_dir):
+            shutil.rmtree(self.output_dir)
+        os.makedirs(self.output_dir, exist_ok=True)
+
 
     # After running each test
     async def tearDown(self):
         pass
 
 
+    async def test_text_to_image(self):
+        hunyuan_wrapper = HunyuanWrapper()
+        prompt = "award-winning artwork depicting a majestic phoenix rising from the ashes, surrounded by swirling flames and embers, with vibrant colors and dynamic composition, masterpiece, trending on artstation"
+        image = hunyuan_wrapper.text_to_image(prompt=prompt)
+        image.save(os.path.join(self.output_dir, "text_to_image_demo.png"))
 
-    async def test_mini_sample(self):
+
+    async def test_text_to_3d(self):
         hunyuan_wrapper = HunyuanWrapper()
         prompt = "award-winning artwork depicting a majestic phoenix rising from the ashes, surrounded by swirling flames and embers, with vibrant colors and dynamic composition, masterpiece, trending on artstation"
         hunyuan_wrapper.text_to_3d(prompt=prompt)

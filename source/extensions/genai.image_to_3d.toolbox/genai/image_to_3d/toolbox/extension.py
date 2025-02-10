@@ -13,7 +13,7 @@ import omni.ui as ui
 import os
 from omni.kit.window.file_importer import get_file_importer
 import asyncio
-from genai.image_to_3d.trellis.extension import destroy_trellis_instance
+from genai.trellis.core import destroy_trellis_instance
 
 # Any class derived from `omni.ext.IExt` in the top level module (defined in
 # `python.modules` of `extension.toml`) will be instantiated when the extension

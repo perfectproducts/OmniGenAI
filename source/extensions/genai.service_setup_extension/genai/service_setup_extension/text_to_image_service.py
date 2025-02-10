@@ -14,7 +14,7 @@ import io
 import base64
 
 from omni.services.core.routers import ServiceAPIRouter
-from genai.text_to_image.flux import FluxWrapper
+from genai.flux.core import FluxWrapper
 from PIL import Image
 router = ServiceAPIRouter(tags=["GenAI Text to Image Service Setup"])
 

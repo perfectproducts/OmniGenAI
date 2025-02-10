@@ -8,55 +8,61 @@
 # without an express license agreement from NVIDIA CORPORATION or
 # its affiliates is strictly prohibited.
 
-
 [package]
-title = "GenAI Service Setup"
+title = "GenAI Image To 3D Trellis"
 version = "0.1.0"  # Semantic Versionning is used: https://semver.org/
-description = "The simplest python service example extension. Use it as a starting point for your extensions."
+description = "The simplest python extension example. Use it as a starting point for your extensions."
 category = "Example"  # How to categorize this in the Extension Manager
 changelog = "docs/CHANGELOG.md"
 icon = "data/icon.png"  # Icon to show in the Extension Manager
-keywords = ["kit", "extension", "setup"]  # Search keywords for the Extension Manager
+keywords = ["kit", "example", "extension"]  # Search keywords for the Extension Manager
 preview_image = "data/preview.png"  # Preview to show in the Extension Manager
-readme = "docs/README.md" # Path (relative to the root) or content of readme markdown file for UI
+readme  = "docs/README.md"  # Path (relative to the root) or content of readme markdown file for UI
 repository = "https://github.com/NVIDIA-Omniverse/kit-app-template"  # URL of the extension source repository
 
 
 [dependencies]
+"omni.kit.pip_archive" = {}
 "omni.kit.commands" = {}
-"omni.services.core" = {}
-"omni.services.transport.server.http" = {}
-"genai.flux.core" = {}
-
-[settings]
-text_to_image_enabled = true
-
-
-[[python.module]]  # Main python module this extension provides, it will be publicly available as "import genai.service_setup_extension"
-name = 'genai.service_setup_extension'
-
+"omni.kit.asset_converter" = {}
 
 [python.pipapi]
-requirements = ['einops',
-                'protobuf',
-                'torch',
+requirements = ['gitpython',
+                'torch==2.5.1',
                 'torchvision',
-                'torchaudio',
-                'diffusers',
+                'xformers==0.0.28.post3',
+                'pillow',
+                'imageio',
+                'tqdm',
+                'easydict',
+                'opencv-python-headless',
+                'scipy',
+                'ninja',
+                'onnxruntime',
+                'rembg',
+                'trimesh',
+                'xatlas',
+                'pyvista',
+                'pymeshfix',
+                'igraph',
                 'transformers',
-                'accelerate',
-                'sacremoses',
-                'peft',
-
-                'safetensors',
-                'huggingface-hub',
-                'sentencepiece',
-
-
+                'spconv-cu120',
+                'plyfile',
+                'pygltflib',
+                'ipyevents',
+                'ipycanvas',
                 ]
-extra_args = ["--extra-index-url", "https://download.pytorch.org/whl/cu124"]
 
+
+extra_args = ["--extra-index-url", "https://download.pytorch.org/whl/cu124"]
 use_online_index = true
+
+[settings]
+
+
+[[python.module]]  # Main python module this extension provides, it will be publicly available as "import genai.image_to_3d.trellis"
+name = "genai.trellis.core"
+
 
 [documentation]
 pages = [
@@ -68,6 +74,7 @@ pages = [
 [[test]]
 dependencies = [
 ]
+timeout = 900  # 15 minutes timeout since we have to download a lot of files
 
 args = [
 ]

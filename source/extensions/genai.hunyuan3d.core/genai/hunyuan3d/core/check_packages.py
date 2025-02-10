@@ -41,6 +41,26 @@ def _setup_custom_rasterizer():
             )
         print("custom_rasterizer installed")
 
+def _remove_pip(package):
+    try:
+        pip.call_pip(args=["uninstall", package, "-y"])
+    except Exception as e:
+        print(f"Error uninstalling {package}: {e}")
+
+def uninstall_dependencies(self):
+    print("uninstall dependencies")
+    _remove_pip("torch")
+    _remove_pip("torchvision")
+    _remove_pip("torchaudio")
+    _remove_pip("torchmetrics")
+    _remove_pip("torchdiffeq")
+    _remove_pip("torchvision")
+
+
+
+
+
+
 
 def check_packages():
     print("check packages")

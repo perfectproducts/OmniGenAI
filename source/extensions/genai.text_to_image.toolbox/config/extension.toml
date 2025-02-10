@@ -24,6 +24,7 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-app-template"  # URL of th
 [dependencies]
 "omni.kit.uiapp" = {}
 "omni.kit.window.file_importer" = {}
+"genai.flux.core" = {}
 
 [settings]
 

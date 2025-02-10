@@ -16,7 +16,8 @@ from genai.hunyuan3d.core import HunyuanWrapper
 import omni.kit.test
 import os
 import shutil
-
+from PIL import Image
+import pip
 
 # Having a test class derived from omni.kit.test.AsyncTestCase declared on the root of the module
 # will make it auto-discoverable by omni.kit.test
@@ -34,6 +35,11 @@ class Test(omni.kit.test.AsyncTestCase):
     # After running each test
     async def tearDown(self):
         pass
+
+    # Any class derived from `omni.ext.IExt` in the top level module (defined in
+    # `python.modules` of `extension.toml`) will be instantiated when the extension
+    # gets enabled, and `on_startup(ext_id)` will be called. Later when the
+    # extension gets disabled on_shutdown() is called.
 
 
     async def test_text_to_image(self):

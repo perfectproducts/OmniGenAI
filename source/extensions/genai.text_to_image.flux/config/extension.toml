@@ -29,7 +29,7 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-app-template"  # URL of th
 [python.pipapi]
 requirements = [
 
-                'torchaudio',
+#                'torchaudio',
                 'diffusers',
                 'transformers',
                 'accelerate',
@@ -63,7 +63,8 @@ pages = [
 [[test]]
 dependencies = [
 ]
-timeout = 900  # 15 minutes timeout since we have to download a lot of files
+# 5 hours timeout, may take very long time to download the model
+timeout = 18000
 stdoutFailPatterns.exclude = ["*You set `add_prefix_space`.*"]
 args = [
 ]

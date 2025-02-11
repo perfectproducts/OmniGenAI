@@ -215,13 +215,20 @@ def check_packages():
     if not _check_cuda():
         ## doesnt make sense to continue if cuda is not 12.4
         return
+    result = {}
     print("Checking packages")
-    print("trellis:", _check_trellis_repo())
-    print("ninja:", _check_ninja())
-    print("utils3d:", _check_utils3d())
-    print("flash_attn:", _check_flash_attn())
-    print("kaolin:", _check_kaolin())
-    print("nvdiffrast:", _check_nvdiffrast())
-    print("diffoctreerast:", _check_diffoctreerast())
-    print("diff_gaussian_rasterization:", _check_diff_gaussian_rasterization())
-    print("trellis_submodules:", _check_trellis_submodules())
+
+    result['trellis_ok'] = _check_trellis_repo()
+    result['ninja_ok'] = _check_ninja()
+    result['utils3d_ok'] = _check_utils3d()
+    result['flash_attn_ok'] = _check_flash_attn()
+    result['kaolin_ok'] = _check_kaolin()
+    result['nvdiffrast_ok'] = _check_nvdiffrast()
+    result['diffoctreerast_ok'] = _check_diffoctreerast()
+    result['diff_gaussian_rasterization_ok'] = _check_diff_gaussian_rasterization()
+    result['trellis_submodules_ok'] = _check_trellis_submodules()
+    for k, v in result.items():
+        print(f"{k}: {v}")
+        if not v:
+            return False
+    return True

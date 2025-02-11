@@ -24,10 +24,11 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-app-template"  # URL of th
 [dependencies]
 "omni.kit.pip_archive" = {}
 "omni.kit.commands" = {}
+"genai.packages.core" = {}
 
 [python.pipapi]
-requirements = ['torch',
-                'torchvision',
+requirements = [
+
                 'torchaudio',
                 'diffusers',
                 'transformers',

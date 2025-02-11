@@ -39,15 +39,14 @@ class TestFlux(omni.kit.test.AsyncTestCase):
         pass
 
     # Actual test, notice it is an "async" function, so "await" can be used if needed
-    async def test_flux(self):
+    async def test_flux_init(self):
         string_buffer = io.StringIO()
         with contextlib.redirect_stderr(string_buffer):
 
-            flux = FluxWrapper()
+            flux = FluxWrapper.get_instance()
             img = await flux.generate("a red and green apple", height=512, width=512)
             self.assertIsNotNone(img)
             self.assertEqual(img.size, (512, 512))
-            flux.shutdown()
 
         print("test done:")
         print(string_buffer.getvalue())

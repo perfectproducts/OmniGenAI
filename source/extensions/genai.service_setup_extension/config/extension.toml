@@ -27,7 +27,7 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-app-template"  # URL of th
 "omni.services.core" = {}
 "omni.services.transport.server.http" = {}
 "genai.packages.core" = {}
-"genai.text_to_image.flux" = {}
+"genai.flux.core" = {}
 
 [settings]
 text_to_image_enabled = true

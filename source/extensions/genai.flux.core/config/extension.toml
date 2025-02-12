@@ -28,8 +28,6 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-app-template"  # URL of th
 
 [python.pipapi]
 requirements = [
-
-#                'torchaudio',
                 'diffusers',
                 'transformers',
                 'accelerate',
@@ -50,7 +48,7 @@ use_online_index = true
 
 
 [[python.module]]  # Main python module this extension provides, it will be publicly available as "import genai.text_to_image.flux"
-name = "genai.text_to_image.flux"
+name = "genai.flux.core"
 
 
 [documentation]

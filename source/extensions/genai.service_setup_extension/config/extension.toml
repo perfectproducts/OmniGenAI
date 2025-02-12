@@ -26,6 +26,7 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-app-template"  # URL of th
 "omni.kit.commands" = {}
 "omni.services.core" = {}
 "omni.services.transport.server.http" = {}
+"genai.packages.core" = {}
 "genai.text_to_image.flux" = {}
 
 [settings]
@@ -39,18 +40,7 @@ name = 'genai.service_setup_extension'
 [python.pipapi]
 requirements = ['einops',
                 'protobuf',
-                'torch',
-                'torchvision',
-                'torchaudio',
-                'diffusers',
-                'transformers',
-                'accelerate',
-                'sacremoses',
-                'peft',
 
-                'safetensors',
-                'huggingface-hub',
-                'sentencepiece',
 
 
                 ]

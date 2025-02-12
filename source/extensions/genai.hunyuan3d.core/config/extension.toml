@@ -9,7 +9,7 @@
 # its affiliates is strictly prohibited.
 
 [package]
-title = "GenAI Image To 3D Trellis"
+title = "Hunyuan3D-2 Support"
 version = "0.1.0"  # Semantic Versionning is used: https://semver.org/
 description = "The simplest python extension example. Use it as a starting point for your extensions."
 category = "Example"  # How to categorize this in the Extension Manager
@@ -23,41 +23,13 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-app-template"  # URL of th
 
 [dependencies]
 "omni.kit.pip_archive" = {}
-"omni.kit.commands" = {}
-"omni.kit.asset_converter" = {}
 "genai.packages.core" = {}
-
-[python.pipapi]
-requirements = ['gitpython',
-                'pillow',
-                'imageio',
-                'tqdm',
-                'easydict',
-                'scipy',
-                'ninja',
-                'onnxruntime',
-                'rembg',
-                'trimesh',
-                'xatlas',
-                'pyvista',
-                'pymeshfix',
-                'igraph',
-                'transformers',
-                'plyfile',
-                'pygltflib',
-                'ipyevents',
-                'ipycanvas',
-                ]
-
-
-extra_args = ["--extra-index-url", "https://download.pytorch.org/whl/cu124"]
-use_online_index = true
 
 [settings]
 
 
-[[python.module]]  # Main python module this extension provides, it will be publicly available as "import genai.image_to_3d.trellis"
-name = "genai.trellis.core"
+[[python.module]]  # Main python module this extension provides, it will be publicly available as "import genai.hunyuan3d.core"
+name = "genai.hunyuan3d.core"
 
 
 [documentation]
@@ -66,9 +38,36 @@ pages = [
     "docs/CHANGELOG.md",
 ]
 
+[python.pipapi]
+requirements = [
+    'gitpython',
+    'pyyaml',
+    'numpy',
+    'pillow',
+    'imageio',
+    'onnxruntime',
+    'rembg',
+    'trimesh',
+
+    'diffusers',
+    'transformers',
+    'einops',
+    'pymeshlab==2023.12.post1',  #need this, otherwise it wil crash on import on windows
+    'accelerate',
+    'sentencepiece',
+    'xatlas',
+    'huggingface_hub',
+    'pygltflib',
+
+]
+extra_args = ["--extra-index-url", "https://download.pytorch.org/whl/cu124"]
+
+use_online_index = true
+
 
 [[test]]
 dependencies = [
+
 ]
 # 5 hours timeout, may take very long time to download the model
 timeout = 18000

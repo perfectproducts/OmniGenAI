@@ -7,6 +7,8 @@ from .Hunyuan3D_2.hy3dgen.shapegen import (Hunyuan3DDiTFlowMatchingPipeline,
 from .Hunyuan3D_2.hy3dgen.text2image import HunyuanDiTPipeline
 from .Hunyuan3D_2.hy3dgen.texgen import Hunyuan3DPaintPipeline
 from PIL import Image
+import gc
+import torch
 
 
 class HunyuanWrapper:
@@ -23,7 +25,7 @@ class HunyuanWrapper:
     def text_to_image(self, prompt='a car') -> Image:
         return self.t2i(prompt)
 
-    def image_to_3d(self, image: Image, glb_output_path='i23d_demo.glb') -> None:
+    def image_to_3d(self, image: Image, glb_output_path) -> None:
         image = self.rembg(image)
         mesh = self.i23d(image, num_inference_steps=30, mc_algo='mc')[0]
         mesh = self.floater_remover(mesh)

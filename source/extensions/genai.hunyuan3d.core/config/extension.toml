@@ -42,24 +42,31 @@ pages = [
 requirements = [
     'gitpython',
     'pyyaml',
+    'ninja',
+    'pybind11',
     'numpy',
     'pillow',
     'imageio',
+    'opencv-python',
     'onnxruntime',
+    'omegaconf',
     'rembg',
     'trimesh',
-
+    'accelerate',
     'diffusers',
     'transformers',
     'einops',
     'pymeshlab==2023.12.post1',  #need this, otherwise it wil crash on import on windows
-    'accelerate',
     'sentencepiece',
     'xatlas',
     'huggingface_hub',
     'pygltflib',
 
 ]
+
+
+
+
 extra_args = ["--extra-index-url", "https://download.pytorch.org/whl/cu124"]
 
 use_online_index = true

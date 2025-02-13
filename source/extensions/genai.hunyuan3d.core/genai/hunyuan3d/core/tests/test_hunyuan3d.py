@@ -17,7 +17,8 @@ import omni.kit.test
 import os
 import shutil
 from PIL import Image
-import pip
+import sys
+import io
 
 # Having a test class derived from omni.kit.test.AsyncTestCase declared on the root of the module
 # will make it auto-discoverable by omni.kit.test
@@ -30,7 +31,8 @@ class Test(omni.kit.test.AsyncTestCase):
         if os.path.exists(self.output_dir):
             shutil.rmtree(self.output_dir)
         os.makedirs(self.output_dir, exist_ok=True)
-
+        # redirect stderr to our own stream
+        self.text_prompt = "an apple"
 
     # After running each test
     async def tearDown(self):
@@ -41,16 +43,32 @@ class Test(omni.kit.test.AsyncTestCase):
     # gets enabled, and `on_startup(ext_id)` will be called. Later when the
     # extension gets disabled on_shutdown() is called.
 
-
     async def test_text_to_image(self):
         hunyuan_wrapper = HunyuanWrapper()
-        prompt = "award-winning artwork depicting a majestic phoenix rising from the ashes, surrounded by swirling flames and embers, with vibrant colors and dynamic composition, masterpiece, trending on artstation"
-        image = hunyuan_wrapper.text_to_image(prompt=prompt)
-        image.save(os.path.join(self.output_dir, "text_to_image_demo.png"))
 
+        image = hunyuan_wrapper.text_to_image(prompt=self.text_prompt)
+        image.save(os.path.join(self.output_dir, "text_to_image_demo.png"))
+        del hunyuan_wrapper
 
     async def test_text_to_3d(self):
         hunyuan_wrapper = HunyuanWrapper()
-        prompt = "award-winning artwork depicting a majestic phoenix rising from the ashes, surrounded by swirling flames and embers, with vibrant colors and dynamic composition, masterpiece, trending on artstation"
-        hunyuan_wrapper.text_to_3d(prompt=prompt)
-        pass
+        glb_path = os.path.join(self.output_dir, "text_to_3d_demo.glb")
+        hunyuan_wrapper.text_to_3d(prompt=self.text_prompt, glb_output_path=glb_path)
+        del hunyuan_wrapper
+        # check if the file exists
+        self.assertTrue(os.path.exists(glb_path))
+
+
+    async def test_image_to_3d(self):
+        hunyuan_wrapper = HunyuanWrapper()
+        image_path = os.path.join(self.data_dir, "image_to_3d_demo.png")
+        image = Image.open(image_path)
+        # resize image to 512x512
+        image = image.resize((512, 512))
+        glb_path = os.path.join(self.output_dir, "image_to_3d_demo.glb")
+        print(f"Running image_to_3d with {glb_path}")
+        print(f"Image size: {image.size}")
+        hunyuan_wrapper.image_to_3d(image, glb_path)
+        del hunyuan_wrapper
+        # check if the file exists
+        self.assertTrue(os.path.exists(glb_path))
